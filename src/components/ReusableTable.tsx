@@ -1,5 +1,14 @@
-import { Paper, Table, TableContainer, TablePagination } from '@mui/material'
-import { ChangeEvent, useState } from 'react'
+import {
+  Box,
+  Button,
+  Paper,
+  Table,
+  TableContainer,
+  TablePagination,
+  Toolbar,
+  Typography,
+} from '@mui/material'
+import { ChangeEvent, useEffect, useState } from 'react'
 import ReusableTableBody from './TableBody'
 import TableHeader from './TableHeader'
 
@@ -27,15 +36,22 @@ function getComparator<T, Key extends keyof T>(order: Order, orderBy?: Key) {
 
 export default function ReusableTable<T>({
   rows,
-  header,
+  headCells,
   defaultOrder,
   uniqKey,
+  title,
+  headerButtons,
+  rowsPerPage = [5, 10, 25],
+  isUniqueFieldHidden = true,
 }: ReusableTableProps<T>) {
   const [selectedRows, setSelectedRows] = useState<T[]>([])
   const [order, setOrder] = useState<Order>('asc')
   const [orderBy, setOrderBy] = useState<keyof T | undefined>(defaultOrder)
   const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(5)
+  const [displayedRowsPerPage, setDisplayedRowsPerPage] = useState(
+    rowsPerPage[0]
+  )
+  const [displayedRows, setDisplayedRows] = useState<T[]>([])
 
   function handleSelectAllClick(e: ChangeEvent<HTMLInputElement>) {
     if (e.target.checked) {
@@ -66,54 +82,97 @@ export default function ReusableTable<T>({
   }
 
   function handleChangeRowsPerPage(event: ChangeEvent<HTMLInputElement>) {
-    setRowsPerPage(parseInt(event.target.value, 10))
+    setDisplayedRowsPerPage(parseInt(event.target.value, 10))
     setPage(0)
   }
 
   const isSelected = (key: keyof T, item: T[keyof T]) =>
     selectedRows.map((row) => row[key]).indexOf(item) !== -1
 
-  const displayedRows = rows
-    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-    .sort(getComparator(order, orderBy))
+  useEffect(() => {
+    if (!orderBy) {
+      setDisplayedRows(
+        rows.slice(
+          page * displayedRowsPerPage,
+          page * displayedRowsPerPage + displayedRowsPerPage
+        )
+      )
+      return
+    }
+
+    setDisplayedRows(
+      [...rows]
+        .slice(
+          page * displayedRowsPerPage,
+          page * displayedRowsPerPage + displayedRowsPerPage
+        )
+        .sort(getComparator(order, orderBy))
+    )
+  }, [rows, order, orderBy, page, displayedRowsPerPage])
 
   const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0
+    page > 0 ? Math.max(0, (1 + page) * displayedRowsPerPage - rows.length) : 0
 
   return (
     <Paper>
+      {(title || headerButtons) && (
+        <Toolbar>
+          {title && <Typography variant='h6'>{title}</Typography>}
+
+          {headerButtons && (
+            <Box sx={{ display: 'flex', gap: 2, marginLeft: 'auto' }}>
+              <Button variant='outlined' data-testid='delete-button'>
+                Delete
+              </Button>
+              <Button variant='contained' data-testid='edit-button'>
+                Edit
+              </Button>
+            </Box>
+          )}
+        </Toolbar>
+      )}
       <TableContainer>
         <Table>
           <TableHeader
             checkbox
-            headCells={header}
+            headCells={headCells}
             rowCount={rows.length}
             numSelected={selectedRows.length}
             onSelectAllClick={handleSelectAllClick}
             order={order}
             orderBy={orderBy}
             onSort={(property) => handleSort(property)}
+            isUniqueFieldHidden={isUniqueFieldHidden}
           />
           <ReusableTableBody
             uniqKey={uniqKey}
             rows={displayedRows}
-            header={header}
+            headCells={headCells}
             isSelected={isSelected}
             checkbox={true}
             handleRowClick={handleRowClick}
             emptyRows={emptyRows}
+            isUniqueFieldHidden={isUniqueFieldHidden}
           />
         </Table>
       </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component='div'
-        count={rows.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={(_, page) => handleChangePage(page)}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+      <Box display='flex' justifyContent='space-between' alignItems='center'>
+        <Box ml={2}>
+          <Typography variant='body2'>
+            {selectedRows.length} Selected
+          </Typography>
+        </Box>
+        <TablePagination
+          style={{ marginLeft: 'auto' }}
+          rowsPerPageOptions={[5, 10, 25]}
+          component='div'
+          count={rows.length}
+          rowsPerPage={displayedRowsPerPage}
+          page={page}
+          onPageChange={(_, page) => handleChangePage(page)}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Box>
     </Paper>
   )
 }
@@ -121,8 +180,12 @@ export default function ReusableTable<T>({
 interface ReusableTableProps<T> {
   rows: T[]
   defaultOrder?: keyof T
-  header: HeadCell<T, keyof T>[]
+  headCells: HeadCell<T, keyof T>[]
   uniqKey: keyof T
+  title?: string
+  headerButtons?: boolean
+  rowsPerPage?: number[]
+  isUniqueFieldHidden?: boolean
 }
 
 export type Order = 'asc' | 'desc'

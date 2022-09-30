@@ -1,14 +1,16 @@
 import ReusableTable, { HeadCell } from './components/ReusableTable'
-import Table from './components/Table'
+import servants from './assets/data/nice_servant.json'
 
-interface Cheese {
+export interface Servants {
   id: string | number
   name: string
-  calories: number
-  fat: number
+  className: number
+  gender: number
+  flag: string
+  type: string
 }
 
-const headCells: HeadCell<Cheese, keyof Cheese>[] = [
+const headCells: HeadCell<Servants, keyof Servants>[] = [
   {
     key: 'id',
     label: 'ID',
@@ -18,64 +20,16 @@ const headCells: HeadCell<Cheese, keyof Cheese>[] = [
     label: 'Name',
   },
   {
-    key: 'calories',
-    label: 'Calories',
-  },
-  {
-    key: 'fat',
-    label: 'Fat',
+    key: 'className',
+    label: 'Class Name',
   },
 ]
 
-const rows: Cheese[] = [
-  {
-    id: 1,
-    name: 'Parmesan',
-    calories: 112,
-    fat: 9.5,
-  },
-  {
-    id: 2,
-    name: 'Swiss',
-    calories: 100,
-    fat: 8,
-  },
-  {
-    id: 3,
-    name: 'Parmesan',
-    calories: 112,
-    fat: 9.5,
-  },
-  {
-    id: 4,
-    name: 'Parmesan',
-    calories: 112,
-    fat: 9.5,
-  },
-  {
-    id: 5,
-    name: 'Parmesan',
-    calories: 112,
-    fat: 9.5,
-  },
-  {
-    id: 6,
-    name: 'Parmesan',
-    calories: 142,
-    fat: 9.5,
-  },
-  {
-    id: 7,
-    name: 'Parmesan',
-    calories: 152,
-    fat: 9.5,
-  },
-]
 function App() {
+  const data = servants as Servants[]
   return (
     <div className='App'>
-      <Table />
-      <ReusableTable rows={rows} header={headCells} uniqKey='id' />
+      <ReusableTable rows={data} headCells={headCells} uniqKey='id' />
     </div>
   )
 }

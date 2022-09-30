@@ -17,7 +17,7 @@ const headCells: HeadCell<Servants, keyof Servants>[] = [
   },
 ]
 
-const data = servants as Servants[]
+const data = servants as unknown as Servants[]
 
 describe('ReusableTable', () => {
   beforeEach(() => {

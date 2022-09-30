@@ -26,7 +26,7 @@ const headCells: HeadCell<Servants, keyof Servants>[] = [
 ]
 
 function App() {
-  const data: Servants[] = Object.assign(servants)
+  const data = Object.assign(servants) as unknown as Servants[]
   return (
     <div className='App'>
       <ReusableTable rows={data} headCells={headCells} uniqKey='id' />

@@ -23,6 +23,10 @@ const headCells: HeadCell<Servants, keyof Servants>[] = [
     key: 'className',
     label: 'Class Name',
   },
+  {
+    key: 'gender',
+    label: 'Gender'
+  }
 ]
 
 function App() {
